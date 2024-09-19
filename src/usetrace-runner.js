@@ -42,6 +42,8 @@ class UsetraceRunner {
       ? { headers: { Authorization: `Bearer ${this.context.usetraceApiKey}` } }
       : {}
 
+    console.log('########## this.config: ', this.config)
+    console.log('########## this.context: ', this.context)
     this.output = {}
   }
 
