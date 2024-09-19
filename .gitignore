@@ -1,0 +1,8 @@
+# Generated artifacts
+output.json
+
+# Dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env
