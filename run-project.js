@@ -1,7 +1,7 @@
 const { UsetraceRunner } = require('./src/usetrace-runner')
 
 async function main() {
-  console.log('RUN PROJECT JOB')
+  console.log('RUN PROJECT')
   const config = {
     envUrl: process.env.USETRACE_API_URL || 'https://api.usetrace.com',
     buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS) || 3600,

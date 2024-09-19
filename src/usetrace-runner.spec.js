@@ -28,7 +28,7 @@ describe('UsetraceRunner', () => {
     process.env.INPUT_PARAMETERS = '{"key": "value"}'
     process.env.INPUT_TAGS = 'tag1,tag2'
     process.env.INPUT_COMMIT = 'abc123'
-    process.env.INPUT_COMMIT_LINK = 'https://github.com/repo/commit/abc123'
+    process.env.INPUT_COMMIT_LINK = 'commit-abc123'
     process.env.INPUT_USETRACE_API_KEY = 'api-key-123'
     process.env.INPUT_WEBHOOK_URL = 'https://webhook.example.com'
     process.env.INPUT_WEBHOOK_WHEN = 'always'
@@ -49,7 +49,7 @@ describe('UsetraceRunner', () => {
       parameters: '{"key": "value"}',
       tags: 'tag1,tag2',
       commit: 'abc123',
-      commitLink: 'https://github.com/repo/commit/abc123',
+      commitLink: 'commit-abc123',
       usetraceApiKey: 'api-key-123',
       webhookUrl: 'https://webhook.example.com',
       webhookWhen: 'always',
@@ -65,7 +65,7 @@ describe('UsetraceRunner', () => {
       parameters: { key: 'value' },
       tags: ['tag1', 'tag2'],
       commit: 'abc123',
-      commitLink: 'https://github.com/repo/commit/abc123',
+      commitLink: 'commit-abc123',
       reporters: [
         {
           webhook: {

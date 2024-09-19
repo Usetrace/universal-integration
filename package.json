@@ -21,10 +21,10 @@
   },
   "homepage": "https://github.com/usetrace/universal-integration",
   "scripts": {
-    "trace": "node run-trace-job.js",
-    "trace:dev": "dotenvx run -- node run-trace-job.js",
-    "project": "node run-project-job.js",
-    "project:dev": "dotenvx run -- node run-project-job.js",
+    "trace": "node run-trace.js",
+    "trace:dev": "dotenvx run -- node run-trace.js",
+    "project": "node run-project.js",
+    "project:dev": "dotenvx run -- node run-project.js",
     "test": "jest",
     "lint": "eslint src/**/*.js index.js --ignore-pattern **/*.spec.js --fix --max-warnings 10"
   },
