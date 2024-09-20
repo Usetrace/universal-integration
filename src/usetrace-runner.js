@@ -1,48 +1,52 @@
 const fs = require('fs').promises
 const axios = require('axios')
 
-const { getContext, createPayloadFromContext, throwError } = require('./utils')
+const { getContextFromEnvVars, createPayloadFromContext, throwError } = require('./utils')
 
 /**
  * Class that allows to invoke endpoints from the Usetrace API to trigger Traces and get the results
  */
 class UsetraceRunner {
   /**
-   * @param {} config Allow to change the behavior of the integration
-   * @param {} triggerType Indicates if it should trigger a 'project' or a 'trace'
+   * @param {} context Allow to change the behavior of the integration
    */
-  constructor(config, triggerType) {
-    this.config = {
+  constructor(context) {
+    // Context precedence order is: command line arguments, environment variables (INPUT_*), defaults
+    const parametersFromEnv = getContextFromEnvVars()
+    this.context = {
+      // Default values
       envUrl: 'https://api.usetrace.com',
       buildTimeoutSeconds: 3600,
       failOnFailedTraces: true,
       pollIntervalMs: 5000,
-      triggerType,
-      ...config,
+      // Parameters loaded form env vars
+      ...parametersFromEnv,
+      // Parameters passed by command line (highest precedence)
+      ...context,
     }
 
-    this.context = getContext()
-
-    if (this.config.triggerType === 'project') {
+    if (this.context.projectId && !this.context.traceId) {
       // User attempts to trigger a Project
-      if (!this.context.projectId) throwError("No 'projectId' parameter was provided")
+      this.context.triggerType = 'project'
       this.context.triggerId = this.context.projectId
-    } else {
-      // User attempts to trigger a Trace
-      if (!this.context.traceId) throwError("No 'traceId' parameter was provided")
+    } else if (!this.context.projectId && this.context.traceId) {
+      // User attempts to trigger a single Trace
+      this.context.triggerType = 'trace'
       this.context.triggerId = this.context.traceId
+    } else {
+      // User provided wrong configuration
+      throwError("A 'projectId' or a 'traceId' are required")
     }
 
     const endpointPath =
-      this.config.triggerType === 'project'
+      this.context.triggerType === 'project'
         ? `/api/project/${this.context.triggerId}/execute-all`
         : `/api/trace/${this.context.triggerId}/execute`
-    this.context.triggerEndpoint = `${this.config.envUrl}${endpointPath}`
+    this.context.triggerEndpoint = `${this.context.envUrl}${endpointPath}`
     this.context.headers = this.context.usetraceApiKey
       ? { headers: { Authorization: `Bearer ${this.context.usetraceApiKey}` } }
       : {}
 
-    console.log('########## this.config: ', this.config)
     console.log('########## this.context: ', this.context)
     this.output = {}
   }
@@ -52,12 +56,13 @@ class UsetraceRunner {
       const result = await this.runUsetrace()
       await this.processResult(result)
     } catch (error) {
-      throwError(error.message)
+      throwError(error)
     }
   }
 
   async runUsetrace() {
     const payload = createPayloadFromContext(this.context)
+    console.log('########## payload: ', payload)
     const response = await axios.post(
       this.context.triggerEndpoint,
       payload,
@@ -76,7 +81,7 @@ class UsetraceRunner {
   waitForBuildToFinish() {
     return new Promise((resolve, reject) => {
       const startTime = Date.now()
-      const timeoutMs = this.config.buildTimeoutSeconds * 1000
+      const timeoutMs = this.context.buildTimeoutSeconds * 1000
 
       const checkStatus = async () => {
         try {
@@ -95,10 +100,10 @@ class UsetraceRunner {
       const scheduleNextCheck = () => {
         if (Date.now() - startTime > timeoutMs) {
           reject(
-            new Error(`Polling timed out after ${this.config.buildTimeoutSeconds} seconds`)
+            new Error(`Polling timed out after ${this.context.buildTimeoutSeconds} seconds`)
           )
         } else {
-          setTimeout(checkStatus, this.config.pollIntervalMs)
+          setTimeout(checkStatus, this.context.pollIntervalMs)
         }
       }
 
@@ -108,7 +113,7 @@ class UsetraceRunner {
 
   async checkBuildStatus() {
     const response = await axios.get(
-      `${this.config.envUrl}/api/build/${this.context.buildId}/status`,
+      `${this.context.envUrl}/api/build/${this.context.buildId}/status`,
       this.context.headers
     )
 
@@ -117,7 +122,7 @@ class UsetraceRunner {
 
     if (response.status === 200 && response.data.status === 'FINISHED') {
       const results = await axios.get(
-        `${this.config.envUrl}/api/build/${this.context.buildId}/results/json`,
+        `${this.context.envUrl}/api/build/${this.context.buildId}/results/json`,
         this.context.headers
       )
       console.log('Build finished with this result:', results.data)
@@ -131,7 +136,7 @@ class UsetraceRunner {
   async processResult(result) {
     await this.saveOutput()
 
-    if (this.config.failOnFailedTraces && result.summary?.fail > 0) {
+    if (this.context.failOnFailedTraces && result.summary?.fail > 0) {
       throw new Error(`${result.summary.fail} Traces failed out of ${result.summary.request}`)
     }
   }

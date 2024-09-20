@@ -38,7 +38,7 @@ const parseReporters = (context) => {
       ...(context.webhookUsername && { username: context.webhookUsername }),
       ...(context.webhookPassword && { password: context.webhookPassword }),
     }
-    parsedReporters.reporters = [{ webhook }]
+    parsedReporters = [{ webhook }]
   }
 
   return parsedReporters

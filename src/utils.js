@@ -10,7 +10,7 @@ function toCamelCase(str) {
 }
 
 /** Finds all env vars and turns them into a context object */
-function getContext() {
+function getContextFromEnvVars() {
   // Get all environment variables
   const env = process.env
   // Loop through each environment variable
@@ -59,6 +59,7 @@ const createPayloadFromContext = (context) => {
   }
 
   // Parse reporters
+  // TODO: FIX ISSUE IN PREVIOUS INTEGRATIONS IF PRESENT: Duplicated reporters node
   const reporters = parseReporters(context)
   if (Object.keys(reporters).length > 0) {
     parsedContext.reporters = reporters
@@ -79,4 +80,4 @@ async function throwError(errorMessage) {
   process.exit(1)
 }
 
-module.exports = { toCamelCase, getContext, createPayloadFromContext, throwError }
+module.exports = { toCamelCase, getContextFromEnvVars, createPayloadFromContext, throwError }
