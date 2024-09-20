@@ -9,43 +9,45 @@ Triggering traces from your CI/CD pipelines has endless possibilities.
 
 ### Accepted Inputs
 
+Note: Inputs can be passed by command line parameter or by environment variable.
+
 #### Required Inputs
 
-- `traceId`: ID of a valid Usetrace Project or Trace to be triggered.
+- `--traceId <id>`/`INPUT_TRACE_ID`: ID of a valid Usetrace Project or Trace to be triggered.
 
 To use extend from the job `.run-project-job` (`run-project-job.yml`):
 
-- `projectId`: ID of a valid Usetrace Project or Trace to be triggered.
+- `--projectId <id>`/`INPUT_PROJECT_ID`: ID of a valid Usetrace Project or Trace to be triggered.
 
 #### Optional Inputs
 
 ##### General Arguments
 
-- `browsers`: Comma-separated list of browsers (e.g., 'chrome, firefox') If non is specified test will run in chrome.
-- `baseUrl`: Base URL to execute against (defaults to the project base URL).
-- `parameters`: Object trace parameters. You can pass them as json attributes. Ex: '"key1": "value1", "key2": "value2"',.
-- `usetraceApiKey`: Usetrace API Key for authentication.
-- `buildTimeoutSeconds`: Maximum time to wait for the build before timing out the workflow. Default: 3600 seconds (60 minutes).
+- `--browsers <list>`/`INPUT_BROWSERS`: Comma-separated list of browsers (e.g., 'chrome, firefox') If non is specified test will run in chrome.
+- `--baseUrl <url>`/`INPUT_BASE_URL`: Base URL to execute against (defaults to the project base URL).
+- `--parameters <json>`/`INPUT_PARAMETERS`: Object trace parameters. You can pass them as json attributes. Ex: '"key1": "value1", "key2": "value2"'.
+- `--usetraceApiKey <key>`/`INPUT_USETRACE_API_KEY`: Usetrace API Key for authentication.
+- `--buildTimeoutSeconds <seconds>`/`INPUT_BUILD_TIMEOUT_SECONDS`: Maximum time to wait for the build before timing out the workflow. Default: 3600 seconds (60 minutes).
 
 #### Workflow Control
 
-- `failOnFailedTraces`: Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'.
+- `--failOnFailedTraces`/`INPUT_FAIL_ON_FAILED_TRACES`: Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'.
 
 ##### Reporter Webhook
 
-- `webhookUrl`: URL of the POST callback to send the result. If you want a webhook to be invoked when the build finishes, you must include this value.
-- `webhookWhen`: Designation when the webhook should be triggered. Available values: 'always', 'fails' (on failures only), 'changes' (on result changes only). Default: 'always'.
-- `webhookSecretkey`: If provided, a HMAC signature will be created and passed via a Signature header to verify the validity of the POST response payload.
-- `webhookUsername`: Username for basic auth if the callback URL is behind an auth wall.
-- `webhookPassword`: Password for basic auth.
+- `--webhookUrl <url>`/`INPUT_WEBHOOK_URL`: URL of the POST callback to send the result. If you want a webhook to be invoked when the build finishes, you must include this value.
+- `--webhookWhen <option>`/`INPUT_WEBHOOK_WHEN`: Designation when the webhook should be triggered. Available values: 'always', 'fails' (on failures only), 'changes' (on result changes only). Default: 'always'.
+- `--webhookSecretkey`/`INPUT_WEBHOOK_SECRETKEY`: If provided, a HMAC signature will be created and passed via a Signature header to verify the validity of the POST response payload.
+- `--webhookUsername <username>`/`INPUT_WEBHOOK_USERNAME`: Username for basic auth if the callback URL is behind an auth wall.
+- `--webhookPassword <password>`/`INPUT_WEBHOOK_PASSWORD`: Password for basic auth.
 
 ##### Project-Only Arguments
 
 These arguments only works if you are triggering a project (using a `projectId` instead of a `traceId`)
 
-- `tags`: Comma-separated list of tags. Only traces with those tags will be run (by default runs all traces).
-- `commit`: Hash of the commit leading to this build.
-- `commitLink`: Link to the commit.
+- `--tags <list>`/`INPUT_TAGS`: Comma-separated list of tags. Only traces with those tags will be run (by default runs all traces).
+- `--commit <commit>`/`INPUT_COMMIT`: Hash of the commit leading to this build.
+- `--commitLink <link>`/`INPUT_COMMIT_LINK`: Link to the commit.
 
 ### Output artifact
 
