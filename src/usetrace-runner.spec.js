@@ -38,8 +38,8 @@ describe('UsetraceRunner', () => {
     process.env.USETRACE_API_URL = 'https://api.usetrace.com'
     process.env.POLL_INTERVAL_MS = '5000'
 
-    // Mock getContext to return a context object
-    utils.getContext.mockReturnValue({
+    // Mock getContextFromEnvVars to return a context object
+    utils.getContextFromEnvVars.mockReturnValue({
       traceId: 'trace123',
       projectId: 'project123',
       buildTimeoutSeconds: '120',

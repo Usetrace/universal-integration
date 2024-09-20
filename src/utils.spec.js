@@ -1,4 +1,4 @@
-const { toCamelCase, getContext, createPayloadFromContext } = require('./utils')
+const { toCamelCase, getContextFromEnvVars, createPayloadFromContext } = require('./utils')
 
 describe('utils', () => {
   describe('toCamelCase', () => {
@@ -23,7 +23,7 @@ describe('utils', () => {
     })
   })
 
-  describe('getContext', () => {
+  describe('getContextFromEnvVars', () => {
     const originalEnv = process.env
 
     beforeEach(() => {
@@ -40,7 +40,7 @@ describe('utils', () => {
       process.env.INPUT_BROWSERS = 'chrome, firefox'
       process.env.ANOTHER_VAR = 'should not be included'
 
-      const context = getContext()
+      const context = getContextFromEnvVars()
       expect(context).toEqual({
         baseUrl: 'http://example.com',
         browsers: 'chrome, firefox',
@@ -51,7 +51,7 @@ describe('utils', () => {
     test('handles empty environment', () => {
       process.env = {}
 
-      const context = getContext()
+      const context = getContextFromEnvVars()
 
       expect(context).toEqual({})
     })

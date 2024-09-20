@@ -1,6 +1,9 @@
 // context-utils.test.js
 const { parseBrowsers, parseReporters, parseParameters } = require('./context-utils')
 
+// Used to read the console outputs
+let consoleErrorSpy = null
+
 describe('parseBrowsers', () => {
   test('parses single browser', () => {
     expect(parseBrowsers('chrome')).toEqual([{ browserName: 'chrome' }])
@@ -73,16 +76,14 @@ describe('parseReporters', () => {
       webhookUrl: 'https://example.com/webhook',
       webhookWhen: 'always',
     }
-    expect(parseReporters(context)).toEqual({
-      reporters: [
-        {
-          webhook: {
-            url: 'https://example.com/webhook',
-            when: 'always',
-          },
+    expect(parseReporters(context)).toEqual([
+      {
+        webhook: {
+          url: 'https://example.com/webhook',
+          when: 'always',
         },
-      ],
-    })
+      },
+    ])
   })
 
   test('includes all provided webhook properties', () => {
@@ -93,19 +94,17 @@ describe('parseReporters', () => {
       webhookUsername: 'user',
       webhookPassword: 'pass',
     }
-    expect(parseReporters(context)).toEqual({
-      reporters: [
-        {
-          webhook: {
-            url: 'https://example.com/webhook',
-            when: 'changes',
-            secretKey: 'secret123',
-            username: 'user',
-            password: 'pass',
-          },
+    expect(parseReporters(context)).toEqual([
+      {
+        webhook: {
+          url: 'https://example.com/webhook',
+          when: 'changes',
+          secretKey: 'secret123',
+          username: 'user',
+          password: 'pass',
         },
-      ],
-    })
+      },
+    ])
   })
 
   test('handles empty string values correctly', () => {
@@ -116,16 +115,14 @@ describe('parseReporters', () => {
       webhookUsername: 'user',
       webhookPassword: '',
     }
-    expect(parseReporters(context)).toEqual({
-      reporters: [
-        {
-          webhook: {
-            url: 'https://example.com/webhook',
-            when: 'always',
-            username: 'user',
-          },
+    expect(parseReporters(context)).toEqual([
+      {
+        webhook: {
+          url: 'https://example.com/webhook',
+          when: 'always',
+          username: 'user',
         },
-      ],
-    })
+      },
+    ])
   })
 })
