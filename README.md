@@ -13,9 +13,13 @@ Note: Inputs can be passed by command line parameter or by environment variable.
 
 #### Required Inputs
 
+One of the following parameters must be provided:
+
+To trigger a single Trace:
+
 - `--traceId <id>`/`INPUT_TRACE_ID`: ID of a valid Usetrace Project or Trace to be triggered.
 
-To use extend from the job `.run-project-job` (`run-project-job.yml`):
+To trigger an entire Project:
 
 - `--projectId <id>`/`INPUT_PROJECT_ID`: ID of a valid Usetrace Project or Trace to be triggered.
 
@@ -23,7 +27,7 @@ To use extend from the job `.run-project-job` (`run-project-job.yml`):
 
 ##### General Arguments
 
-- `--browsers <list>`/`INPUT_BROWSERS`: Comma-separated list of browsers (e.g., 'chrome, firefox') If non is specified test will run in chrome.
+- `--browsers <list>`/`INPUT_BROWSERS`: Comma-separated list of browsers (e.g., 'chrome, firefox') If none is specified test will run in chrome.
 - `--baseUrl <url>`/`INPUT_BASE_URL`: Base URL to execute against (defaults to the project base URL).
 - `--parameters <json>`/`INPUT_PARAMETERS`: Object trace parameters. You can pass them as json attributes. Ex: '"key1": "value1", "key2": "value2"'.
 - `--usetraceApiKey <key>`/`INPUT_USETRACE_API_KEY`: Usetrace API Key for authentication.
@@ -36,16 +40,16 @@ To use extend from the job `.run-project-job` (`run-project-job.yml`):
 ##### Reporter Webhook
 
 - `--webhookUrl <url>`/`INPUT_WEBHOOK_URL`: URL of the POST callback to send the result. If you want a webhook to be invoked when the build finishes, you must include this value.
-- `--webhookWhen <option>`/`INPUT_WEBHOOK_WHEN`: Designation when the webhook should be triggered. Available values: 'always', 'fails' (on failures only), 'changes' (on result changes only). Default: 'always'.
+- `--webhookWhen <option>`/`INPUT_WEBHOOK_WHEN`: Designation of when the webhook should be triggered. Available values: 'always', 'fails' (on failures only), 'changes' (on result changes only). Default: 'always'.
 - `--webhookSecretkey`/`INPUT_WEBHOOK_SECRETKEY`: If provided, a HMAC signature will be created and passed via a Signature header to verify the validity of the POST response payload.
 - `--webhookUsername <username>`/`INPUT_WEBHOOK_USERNAME`: Username for basic auth if the callback URL is behind an auth wall.
 - `--webhookPassword <password>`/`INPUT_WEBHOOK_PASSWORD`: Password for basic auth.
 
 ##### Project-Only Arguments
 
-These arguments only works if you are triggering a project (using a `projectId` instead of a `traceId`)
+These arguments only work if you are triggering a project (using a `projectId` instead of a `traceId`)
 
-- `--tags <list>`/`INPUT_TAGS`: Comma-separated list of tags. Only traces with those tags will be run (by default runs all traces).
+- `--tags <list>`/`INPUT_TAGS`: Comma-separated list of tags. Only traces with those tags will be run (by default run all traces).
 - `--commit <commit>`/`INPUT_COMMIT`: Hash of the commit leading to this build.
 - `--commitLink <link>`/`INPUT_COMMIT_LINK`: Link to the commit.
 
