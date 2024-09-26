@@ -25,6 +25,9 @@ class UsetraceRunner {
       ...context,
     }
 
+    console.log('parametersFromEnv: ', parametersFromEnv)
+    console.log('context: ', context)
+
     if (this.context.projectId && !this.context.traceId) {
       // User attempts to trigger a Project
       this.context.triggerType = 'project'
