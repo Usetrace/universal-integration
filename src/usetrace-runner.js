@@ -13,20 +13,22 @@ class UsetraceRunner {
   constructor(context) {
     // Context precedence order is: command line arguments, environment variables (INPUT_*), defaults
     const parametersFromEnv = getContextFromEnvVars()
+
+    console.log('parametersFromEnv: ', parametersFromEnv)
+    console.log('context: ', context)
+
     this.context = {
       // Default values
       envUrl: 'https://api.usetrace.com',
       buildTimeoutSeconds: 3600,
       failOnFailedTraces: true,
       pollIntervalMs: 5000,
+      browsers: 'chrome',
       // Parameters loaded form env vars
       ...parametersFromEnv,
       // Parameters passed by command line (highest precedence)
       ...context,
     }
-
-    console.log('parametersFromEnv: ', parametersFromEnv)
-    console.log('context: ', context)
 
     if (this.context.projectId && !this.context.traceId) {
       // User attempts to trigger a Project

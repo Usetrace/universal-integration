@@ -10,18 +10,13 @@ program
   // Optional parameters
   .option(
     '--browsers <list>',
-    'Comma-separated list of browsers. Ex: "chrome,firefox" (default: chrome)',
-    'chrome'
+    'Comma-separated list of browsers. Ex: "chrome,firefox" (default: chrome)'
   )
   .option('--baseUrl <url>', 'Base URL to execute against (default: Project base URL)')
   .option('--parameters <json>', 'JSON formatted string of trace parameters')
   .option('--usetraceApiKey <key>', 'Usetrace API Key for authentication')
   .option('--webhookUrl <url>', 'URL of the POST callback to send the result')
-  .option(
-    '--webhookWhen <when>',
-    "When to trigger webhook: 'always', 'fails', 'changes'",
-    'always'
-  )
+  .option('--webhookWhen <when>', "When to trigger webhook: 'always', 'fails', 'changes'")
   .option('--webhookSecretkey <key>', 'Webhook HMAC secret key')
   .option('--webhookUsername <username>', 'Username for webhook basic auth')
   .option('--webhookPassword <password>', 'Password for webhook basic auth')
@@ -29,20 +24,14 @@ program
   .option('--commit <commit>', 'Commit hash for the build')
   .option('--commitLink <link>', 'Link to the commit')
   // Configuration
-  .option('--buildTimeoutSeconds <seconds>', 'Maximum time to wait for the build', '3600')
-  .option('--failOnFailedTraces', 'Fail workflow if any traces fail', true)
-  .option('--pollIntervalMs <ms>', 'Polling interval in milliseconds', '5000')
+  .option('--buildTimeoutSeconds <seconds>', 'Maximum time to wait for the build')
+  .option('--failOnFailedTraces', 'Fail workflow if any traces fail')
+  .option('--pollIntervalMs <ms>', 'Polling interval in milliseconds')
 
 // Parse command-line arguments
 program.parse(process.argv)
 
 const options = program.opts()
-
-// Validate required parameters
-if (!options.traceId && !options.projectId) {
-  console.error('Either --traceId or --projectId must be provided.')
-  process.exit(1)
-}
 
 async function main() {
   const context = {
@@ -51,7 +40,7 @@ async function main() {
     projectId: options.projectId,
 
     // Optional parameters:
-    browsers: options.browsers ? options.browsers : 'chrome', // If its an empty string
+    browsers: options.browsers ? options.browsers : undefined, // If its an empty string
     baseUrl: options.baseUrl,
     parameters: options.parameters,
     usetraceApiKey: options.usetraceApiKey,
@@ -65,10 +54,12 @@ async function main() {
     commit: options.commit,
     commitLink: options.commitLink,
     // Configuration:
-    buildTimeoutSeconds: parseInt(options.buildTimeoutSeconds),
+    buildTimeoutSeconds: options.buildTimeoutSeconds
+      ? parseInt(options.buildTimeoutSeconds)
+      : undefined,
     // Workflow Control:
-    failOnFailedTraces: options.failOnFailedTraces === 'true',
-    pollIntervalMs: parseInt(options.pollIntervalMs),
+    failOnFailedTraces: options.failOnFailedTraces ? options.failOnFailedTraces : undefined,
+    pollIntervalMs: options.pollIntervalMs ? parseInt(options.pollIntervalMs) : undefined,
   }
 
   // Remove undefined values
