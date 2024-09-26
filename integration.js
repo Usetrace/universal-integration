@@ -46,16 +46,16 @@ if (!options.traceId && !options.projectId) {
 
 async function main() {
   const context = {
-    // Needed parameters
+    // Needed parameters:
     traceId: options.traceId,
     projectId: options.projectId,
 
-    // Optional parameters
+    // Optional parameters:
     browsers: options.browsers ? options.browsers : 'chrome', // If its an empty string
     baseUrl: options.baseUrl,
     parameters: options.parameters,
     usetraceApiKey: options.usetraceApiKey,
-    // Reporter Webhook invoke
+    // Reporter Webhook invoke:
     webhookUrl: options.webhookUrl,
     webhookWhen: options.webhookWhen,
     webhookSecretkey: options.webhookSecretkey,
@@ -64,12 +64,15 @@ async function main() {
     tags: options.tags ? options.tags : undefined,
     commit: options.commit,
     commitLink: options.commitLink,
-    // Configuration
+    // Configuration:
     buildTimeoutSeconds: parseInt(options.buildTimeoutSeconds),
     // Workflow Control:
     failOnFailedTraces: options.failOnFailedTraces === 'true',
     pollIntervalMs: parseInt(options.pollIntervalMs),
   }
+
+  // Remove undefined values
+  Object.keys(context).forEach((key) => context[key] === undefined && delete context[key])
 
   const runner = new UsetraceRunner(context)
   await runner.run()
