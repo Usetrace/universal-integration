@@ -69,4 +69,4 @@ async function main() {
   await runner.run()
 }
 
-main() //.catch(console.error)
+main().catch(console.error)

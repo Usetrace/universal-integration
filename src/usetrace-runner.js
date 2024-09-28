@@ -14,9 +14,6 @@ class UsetraceRunner {
     // Context precedence order is: command line arguments, environment variables (INPUT_*), defaults
     const parametersFromEnv = getContextFromEnvVars()
 
-    console.log('parametersFromEnv: ', parametersFromEnv)
-    console.log('context: ', context)
-
     this.context = {
       // Default values
       envUrl: 'https://api.usetrace.com',
