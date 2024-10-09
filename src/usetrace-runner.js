@@ -137,7 +137,8 @@ class UsetraceRunner {
 
   async processResult(result) {
     await this.saveOutput()
-
+    console.log('this.context.failOnFailedTraces', this.context.failOnFailedTraces)
+    console.log('this.context', this.context)
     if (this.context.failOnFailedTraces && result.summary?.fail > 0) {
       throw new Error(`${result.summary.fail} Traces failed out of ${result.summary.request}`)
     }
