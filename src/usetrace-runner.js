@@ -1,7 +1,12 @@
 const fs = require('fs').promises
 const axios = require('axios')
 
-const { getContextFromEnvVars, createPayloadFromContext, throwError } = require('./utils')
+const {
+  getContextFromEnvVars,
+  createPayloadFromContext,
+  throwError,
+  castContextParametersType,
+} = require('./utils')
 
 /**
  * Class that allows to invoke endpoints from the Usetrace API to trigger Traces and get the results
@@ -14,7 +19,7 @@ class UsetraceRunner {
     // Context precedence order is: command line arguments, environment variables (INPUT_*), defaults
     const parametersFromEnv = getContextFromEnvVars()
 
-    this.context = {
+    this.context = castContextParametersType({
       // Default values
       envUrl: 'https://api.usetrace.com',
       buildTimeoutSeconds: 3600,
@@ -25,7 +30,7 @@ class UsetraceRunner {
       ...parametersFromEnv,
       // Parameters passed by command line (highest precedence)
       ...context,
-    }
+    })
 
     if (this.context.projectId && !this.context.traceId) {
       // User attempts to trigger a Project

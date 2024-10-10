@@ -1,4 +1,5 @@
 const { parseBrowsers, parseReporters, parseParameters } = require('./context-utils')
+const parametersType = require('./parametersType.json')
 
 /** Converts a string from snake case or kebab case to camel case */
 function toCamelCase(str) {
@@ -26,8 +27,44 @@ function getContextFromEnvVars() {
   return context
 }
 
+function castParameterType(parameterName, value) {
+  const typeToCast = parametersType[parameterName]
+  switch (typeToCast) {
+    case 'Integer':
+      const num = parseInt(value, 10)
+      if (isNaN(num)) {
+        throw new Error(`${parameterName}: Value "${value}" cannot be converted to Integer`)
+      }
+      return num
+    case 'Boolean':
+      const lowerValue = value.toLowerCase()
+      if (lowerValue !== 'true' && lowerValue !== 'false') {
+        throw new Error(`${parameterName}: Value "${value}" cannot be converted to Boolean`)
+      }
+      return lowerValue === 'true'
+    default:
+      return value
+  }
+}
+
+/** Processes the context object and applies additional type casting based on parametersType */
+function castContextParametersType(context) {
+  // Process only the parameters that need type casting
+  Object.keys(parametersType).forEach((paramName) => {
+    if (paramName in context) {
+      try {
+        context[paramName] = castParameterType(paramName, context[paramName])
+      } catch (error) {
+        console.warn(`Warning: Type casting failed for ${paramName}:`, error.message)
+      }
+    }
+  })
+
+  return context
+}
+
 /** Generates a valid API payload from a Context object */
-const createPayloadFromContext = (context) => {
+function createPayloadFromContext(context) {
   const parsedContext = {}
 
   // Parse baseUrl (optional)
@@ -80,4 +117,10 @@ async function throwError(errorMessage) {
   process.exit(1)
 }
 
-module.exports = { toCamelCase, getContextFromEnvVars, createPayloadFromContext, throwError }
+module.exports = {
+  toCamelCase,
+  getContextFromEnvVars,
+  castContextParametersType,
+  createPayloadFromContext,
+  throwError,
+}

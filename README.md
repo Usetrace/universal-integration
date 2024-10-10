@@ -127,7 +127,7 @@ phases:
       # Trigger single trace job (replace with actual commands)
       - echo "Trigger single trace job"
 
-      - npm run trace --trace {{Trace Id}} --prefix universal-integration
+      - npm run usetrace --traceId {{Trace Id}} --prefix universal-integration
 
       # Act upon the results
       - |

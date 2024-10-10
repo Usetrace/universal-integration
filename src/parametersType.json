@@ -1,0 +1,5 @@
+{
+  "buildTimeoutSeconds": "Integer",
+  "failOnFailedTraces": "Boolean",
+  "pollIntervalMs": "Integer"
+}
