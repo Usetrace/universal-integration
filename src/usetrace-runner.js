@@ -26,6 +26,7 @@ class UsetraceRunner {
       failOnFailedTraces: true,
       pollIntervalMs: 5000,
       browsers: 'chrome',
+      waitForResult: true,
       // Parameters loaded form env vars
       ...parametersFromEnv,
       // Parameters passed by command line (highest precedence)
@@ -49,10 +50,15 @@ class UsetraceRunner {
       this.context.triggerType === 'project'
         ? `/api/project/${this.context.triggerId}/execute-all`
         : `/api/trace/${this.context.triggerId}/execute`
-    this.context.triggerEndpoint = `${this.context.envUrl}${endpointPath}`
-    this.context.headers = this.context.usetraceApiKey
-      ? { headers: { Authorization: `Bearer ${this.context.usetraceApiKey}` } }
-      : {}
+
+    // Build the endpoint URL with API key as query parameter if provided
+    const baseEndpoint = `${this.context.envUrl}${endpointPath}`
+    this.context.triggerEndpoint = this.context.usetraceApiKey
+      ? `${baseEndpoint}?key=${this.context.usetraceApiKey}`
+      : baseEndpoint
+
+    // No special headers needed for Usetrace API
+    this.context.headers = {}
 
     console.log('########## this.context: ', this.context)
     this.output = {}
@@ -70,19 +76,30 @@ class UsetraceRunner {
   async runUsetrace() {
     const payload = createPayloadFromContext(this.context)
     console.log('########## payload: ', payload)
-    const response = await axios.post(
-      this.context.triggerEndpoint,
-      payload,
-      this.context.headers
-    )
+    const response = await axios.post(this.context.triggerEndpoint, payload)
 
     if (response.status !== 200 || !response.data) {
       throw new Error('No build ID returned from execute command')
     }
 
-    console.log('Build triggered. Waiting for it to finish...')
     this.context.buildId = response.data
-    return this.waitForBuildToFinish()
+
+    if (this.context.waitForResult) {
+      console.log('Build triggered. Waiting for it to finish...')
+      return this.waitForBuildToFinish()
+    } else {
+      console.log('Build triggered. Not waiting for results as waitForResult is set to false.')
+      return {
+        id: response.data,
+        status: 'TRIGGERED',
+        summary: {
+          request: 0,
+          finish: 0,
+          pass: 0,
+          fail: 0,
+        },
+      }
+    }
   }
 
   waitForBuildToFinish() {
@@ -119,19 +136,21 @@ class UsetraceRunner {
   }
 
   async checkBuildStatus() {
-    const response = await axios.get(
-      `${this.context.envUrl}/api/build/${this.context.buildId}/status`,
-      this.context.headers
-    )
+    const statusUrl = this.context.usetraceApiKey
+      ? `${this.context.envUrl}/api/build/${this.context.buildId}/status?key=${this.context.usetraceApiKey}`
+      : `${this.context.envUrl}/api/build/${this.context.buildId}/status`
+
+    const response = await axios.get(statusUrl)
 
     // Store the last status as current output
     this.output = this.generateFlatSummary(response.data)
 
     if (response.status === 200 && response.data.status === 'FINISHED') {
-      const results = await axios.get(
-        `${this.context.envUrl}/api/build/${this.context.buildId}/results/json`,
-        this.context.headers
-      )
+      const resultsUrl = this.context.usetraceApiKey
+        ? `${this.context.envUrl}/api/build/${this.context.buildId}/results/json?key=${this.context.usetraceApiKey}`
+        : `${this.context.envUrl}/api/build/${this.context.buildId}/results/json`
+
+      const results = await axios.get(resultsUrl)
       console.log('Build finished with this result:', results.data)
       // Add the report to the output
       this.output.report = results.data
@@ -144,8 +163,16 @@ class UsetraceRunner {
     await this.saveOutput()
     console.log('this.context.failOnFailedTraces', this.context.failOnFailedTraces)
     console.log('this.context', this.context)
-    if (this.context.failOnFailedTraces && result.summary?.fail > 0) {
-      throw new Error(`${result.summary.fail} Traces failed out of ${result.summary.request}`)
+
+    // Only check for failed traces if we waited for results
+    if (
+      this.context.waitForResult &&
+      this.context.failOnFailedTraces &&
+      result.summary?.fail > 0
+    ) {
+      throw new Error(
+        `The execution failed because ${result.summary?.fail} Traces failed out of ${result.summary?.request}. If you don't want the execution to fail when a Trace fails, you can set 'failOnFailedTraces' to false.`
+      )
     }
   }
 

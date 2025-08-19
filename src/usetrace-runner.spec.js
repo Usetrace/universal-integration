@@ -18,45 +18,9 @@ describe('UsetraceRunner', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    // Set up environment variables
-    process.env.INPUT_TRACE_ID = 'trace123'
-    process.env.INPUT_PROJECT_ID = 'project123'
-    process.env.INPUT_BUILD_TIMEOUT_SECONDS = '120'
-    process.env.INPUT_FAIL_ON_FAILED_TRACES = 'true'
-    process.env.INPUT_BROWSERS = 'chrome'
-    process.env.INPUT_BASE_URL = 'https://example.com'
-    process.env.INPUT_PARAMETERS = '{"key": "value"}'
-    process.env.INPUT_TAGS = 'tag1,tag2'
-    process.env.INPUT_COMMIT = 'abc123'
-    process.env.INPUT_COMMIT_LINK = 'commit-abc123'
-    process.env.INPUT_USETRACE_API_KEY = 'api-key-123'
-    process.env.INPUT_WEBHOOK_URL = 'https://webhook.example.com'
-    process.env.INPUT_WEBHOOK_WHEN = 'always'
-    process.env.INPUT_WEBHOOK_SECRETKEY = 'secret123'
-    process.env.INPUT_WEBHOOK_USERNAME = 'username'
-    process.env.INPUT_WEBHOOK_PASSWORD = 'password'
-    process.env.USETRACE_API_URL = 'https://api.usetrace.com'
-    process.env.POLL_INTERVAL_MS = '5000'
-
-    // Mock getContextFromEnvVars to return a context object
-    utils.getContextFromEnvVars.mockReturnValue({
-      traceId: 'trace123',
-      projectId: 'project123',
-      buildTimeoutSeconds: '120',
-      failOnFailedTraces: 'true',
-      browsers: 'chrome',
-      baseUrl: 'https://example.com',
-      parameters: '{"key": "value"}',
-      tags: 'tag1,tag2',
-      commit: 'abc123',
-      commitLink: 'commit-abc123',
-      usetraceApiKey: 'api-key-123',
-      webhookUrl: 'https://webhook.example.com',
-      webhookWhen: 'always',
-      webhookSecretKey: 'secret123',
-      webhookUsername: 'username',
-      webhookPassword: 'password',
-    })
+    // Default: mock no env-derived context; tests will pass explicit context to constructor
+    utils.getContextFromEnvVars.mockReturnValue({})
+    utils.castContextParametersType.mockImplementation((ctx) => ctx)
 
     // Mock createPayloadFromContext to return a payload object
     utils.createPayloadFromContext.mockReturnValue({
@@ -85,72 +49,52 @@ describe('UsetraceRunner', () => {
     })
   })
 
-  afterEach(() => {
-    // Clear environment variables after each test
-    Object.keys(process.env).forEach((key) => {
-      if (
-        key.startsWith('INPUT_') ||
-        key === 'USETRACE_API_URL' ||
-        key === 'POLL_INTERVAL_MS'
-      ) {
-        delete process.env[key]
-      }
-    })
-  })
-
   describe('constructor', () => {
     it('should initialize with correct config and project trigger type', () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS),
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS),
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
-
-      expect(usetraceRunner.config).toEqual({
+      const inputContext = {
         envUrl: 'https://api.usetrace.com',
         buildTimeoutSeconds: 120,
         failOnFailedTraces: true,
         pollIntervalMs: 5000,
-        triggerType: 'project',
-      })
+        projectId: 'project123',
+        usetraceApiKey: 'api-key-123',
+      }
+      usetraceRunner = new UsetraceRunner(inputContext)
+
+      expect(usetraceRunner.context.envUrl).toBe('https://api.usetrace.com')
+      expect(usetraceRunner.context.buildTimeoutSeconds).toBe(120)
+      expect(usetraceRunner.context.failOnFailedTraces).toBe(true)
+      expect(usetraceRunner.context.pollIntervalMs).toBe(5000)
+      expect(usetraceRunner.context.triggerType).toBe('project')
       expect(usetraceRunner.context.triggerId).toBe('project123')
     })
 
     it('should use default values when environment variables are not set', () => {
-      delete process.env.USETRACE_API_URL
-      delete process.env.INPUT_BUILD_TIMEOUT_SECONDS
-      delete process.env.INPUT_FAIL_ON_FAILED_TRACES
-      delete process.env.POLL_INTERVAL_MS
-
-      const config = {
-        envUrl: process.env.USETRACE_API_URL || 'https://api.usetrace.com',
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS) || 3600,
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS) || 5000,
+      const inputContext = {
+        projectId: 'project123',
       }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      usetraceRunner = new UsetraceRunner(inputContext)
 
-      expect(usetraceRunner.config).toEqual({
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 3600,
-        failOnFailedTraces: false,
-        pollIntervalMs: 5000,
-        triggerType: 'project',
-      })
+      expect(usetraceRunner.context.envUrl).toBe('https://api.usetrace.com')
+      expect(usetraceRunner.context.buildTimeoutSeconds).toBe(3600)
+      expect(usetraceRunner.context.failOnFailedTraces).toBe(true)
+      expect(usetraceRunner.context.pollIntervalMs).toBe(5000)
+      expect(usetraceRunner.context.triggerType).toBe('project')
     })
   })
 
   describe('runUsetrace', () => {
     it('should trigger a build and wait for it to finish', async () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS),
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS),
+      const inputContext = {
+        envUrl: 'https://api.usetrace.com',
+        buildTimeoutSeconds: 120,
+        failOnFailedTraces: true,
+        pollIntervalMs: 5000,
+        projectId: 'project123',
+        usetraceApiKey: 'api-key-123',
+        waitForResult: true,
       }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      usetraceRunner = new UsetraceRunner(inputContext)
 
       const mockBuildId = 'build123'
       const mockBuildResult = { status: 'FINISHED' }
@@ -161,9 +105,8 @@ describe('UsetraceRunner', () => {
       const result = await usetraceRunner.runUsetrace()
 
       expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining('/api/project/project123/execute-all'),
-        expect.any(Object),
-        { headers: { Authorization: 'Bearer api-key-123' } }
+        expect.stringContaining('/api/project/project123/execute-all?key=api-key-123'),
+        expect.any(Object)
       )
       expect(usetraceRunner.context.buildId).toBe(mockBuildId)
       expect(usetraceRunner.waitForBuildToFinish).toHaveBeenCalled()
@@ -171,13 +114,15 @@ describe('UsetraceRunner', () => {
     })
 
     it('should throw an error if the API response is invalid', async () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS),
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS),
+      const inputContext = {
+        envUrl: 'https://api.usetrace.com',
+        buildTimeoutSeconds: 120,
+        failOnFailedTraces: true,
+        pollIntervalMs: 5000,
+        projectId: 'project123',
+        usetraceApiKey: 'api-key-123',
       }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      usetraceRunner = new UsetraceRunner(inputContext)
 
       axios.post.mockResolvedValue({ status: 400, data: null })
 
@@ -185,17 +130,32 @@ describe('UsetraceRunner', () => {
         'No build ID returned from execute command'
       )
     })
+
+    it('should trigger and return immediately when waitForResult is false', async () => {
+      const inputContext = {
+        projectId: 'project123',
+        usetraceApiKey: 'api-key-123',
+        waitForResult: false,
+      }
+      usetraceRunner = new UsetraceRunner(inputContext)
+
+      const mockBuildId = 'buildXYZ'
+      axios.post.mockResolvedValue({ status: 200, data: mockBuildId })
+
+      const result = await usetraceRunner.runUsetrace()
+
+      expect(result).toEqual({
+        id: mockBuildId,
+        status: 'TRIGGERED',
+        summary: { request: 0, finish: 0, pass: 0, fail: 0 },
+      })
+    })
   })
 
   describe('waitForBuildToFinish', () => {
     it('should resolve when build status is FINISHED', async () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS),
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS),
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123' }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.context.buildId = 'build123'
 
       const mockStatus = { status: 'FINISHED', summary: { fail: 0, request: 1 } }
@@ -208,13 +168,8 @@ describe('UsetraceRunner', () => {
     })
 
     it('should poll until build is finished', async () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
-        buildTimeoutSeconds: parseInt(process.env.INPUT_BUILD_TIMEOUT_SECONDS),
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: 100, // Faster polling for test
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123', pollIntervalMs: 100 }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.context.buildId = 'build123'
 
       const mockRunningStatus = { status: 'RUNNING' }
@@ -232,13 +187,12 @@ describe('UsetraceRunner', () => {
     })
 
     it('should throw an error if polling times out', async () => {
-      const config = {
-        envUrl: process.env.USETRACE_API_URL,
+      const inputContext = {
+        projectId: 'project123',
         buildTimeoutSeconds: 1,
-        failOnFailedTraces: process.env.INPUT_FAIL_ON_FAILED_TRACES?.toLowerCase() === 'true',
-        pollIntervalMs: 100, // Faster polling for test
+        pollIntervalMs: 100,
       }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.context.buildId = 'build123'
 
       const mockRunningStatus = { status: 'RUNNING' }
@@ -252,13 +206,8 @@ describe('UsetraceRunner', () => {
 
   describe('processResult', () => {
     it('should save output and not throw error when no traces fail', async () => {
-      const config = {
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 120,
-        failOnFailedTraces: true,
-        pollIntervalMs: 5000,
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123' }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.saveOutput = jest.fn()
 
       const result = { summary: { fail: 0, pass: 5, request: 5 } }
@@ -269,31 +218,21 @@ describe('UsetraceRunner', () => {
     })
 
     it('should throw error when traces fail and failOnFailedTraces is true', async () => {
-      const config = {
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 120,
-        failOnFailedTraces: true,
-        pollIntervalMs: 5000,
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123', failOnFailedTraces: true }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.saveOutput = jest.fn()
 
       const result = { summary: { fail: 2, pass: 3, request: 5 } }
 
       await expect(usetraceRunner.processResult(result)).rejects.toThrow(
-        '2 Traces failed out of 5'
+        "The execution failed because 2 Traces failed out of 5. If you don't want the execution to fail when a Trace fails, you can set 'failOnFailedTraces' to false."
       )
       expect(usetraceRunner.saveOutput).toHaveBeenCalled()
     })
 
     it('should not throw error when traces fail and failOnFailedTraces is false', async () => {
-      const config = {
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 120,
-        failOnFailedTraces: false,
-        pollIntervalMs: 5000,
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123', failOnFailedTraces: false }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.saveOutput = jest.fn()
 
       const result = { summary: { fail: 2, pass: 3, request: 5 } }
@@ -306,13 +245,8 @@ describe('UsetraceRunner', () => {
 
   describe('generateFlatSummary', () => {
     it('should generate a flat summary from the result', () => {
-      const config = {
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 120,
-        failOnFailedTraces: true,
-        pollIntervalMs: 5000,
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123' }
+      usetraceRunner = new UsetraceRunner(inputContext)
 
       const result = {
         status: 'FINISHED',
@@ -334,13 +268,8 @@ describe('UsetraceRunner', () => {
 
   describe('saveOutput', () => {
     it('should save the output to a file', async () => {
-      const config = {
-        envUrl: 'https://api.usetrace.com',
-        buildTimeoutSeconds: 120,
-        failOnFailedTraces: true,
-        pollIntervalMs: 5000,
-      }
-      usetraceRunner = new UsetraceRunner(config, 'project')
+      const inputContext = { projectId: 'project123' }
+      usetraceRunner = new UsetraceRunner(inputContext)
       usetraceRunner.output = { status: 'FINISHED', fail: 0, pass: 5, request: 5 }
 
       await usetraceRunner.saveOutput()

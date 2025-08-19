@@ -27,6 +27,10 @@ program
   .option('--buildTimeoutSeconds <seconds>', 'Maximum time to wait for the build')
   .option('--failOnFailedTraces', 'Fail workflow if any traces fail')
   .option('--pollIntervalMs <ms>', 'Polling interval in milliseconds')
+  .option(
+    '--waitForResult',
+    'Wait for the trace to finish before completing (default: true). Set to false to trigger and exit immediately.'
+  )
 
 // Parse command-line arguments
 program.parse(process.argv)
@@ -60,6 +64,7 @@ async function main() {
     // Workflow Control:
     failOnFailedTraces: options.failOnFailedTraces ? options.failOnFailedTraces : undefined,
     pollIntervalMs: options.pollIntervalMs ? parseInt(options.pollIntervalMs) : undefined,
+    waitForResult: options.waitForResult !== undefined ? options.waitForResult : undefined,
   }
 
   // Remove undefined values

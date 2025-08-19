@@ -1,5 +1,6 @@
 {
   "buildTimeoutSeconds": "Integer",
   "failOnFailedTraces": "Boolean",
-  "pollIntervalMs": "Integer"
+  "pollIntervalMs": "Integer",
+  "waitForResult": "Boolean"
 }

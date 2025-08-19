@@ -30,18 +30,20 @@ function getContextFromEnvVars() {
 function castParameterType(parameterName, value) {
   const typeToCast = parametersType[parameterName]
   switch (typeToCast) {
-    case 'Integer':
+    case 'Integer': {
       const num = parseInt(value, 10)
       if (isNaN(num)) {
         throw new Error(`${parameterName}: Value "${value}" cannot be converted to Integer`)
       }
       return num
-    case 'Boolean':
+    }
+    case 'Boolean': {
       const lowerValue = value.toLowerCase()
       if (lowerValue !== 'true' && lowerValue !== 'false') {
         throw new Error(`${parameterName}: Value "${value}" cannot be converted to Boolean`)
       }
       return lowerValue === 'true'
+    }
     default:
       return value
   }

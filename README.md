@@ -32,9 +32,11 @@ To trigger an entire Project:
 - `--parameters <json>`/`INPUT_PARAMETERS`: Object trace parameters. You can pass them as json attributes. Ex: '"key1": "value1", "key2": "value2"'.
 - `--usetraceApiKey <key>`/`INPUT_USETRACE_API_KEY`: Usetrace API Key for authentication.
 - `--buildTimeoutSeconds <seconds>`/`INPUT_BUILD_TIMEOUT_SECONDS`: Maximum time to wait for the build before timing out the workflow. Default: 3600 seconds (60 minutes).
+- `--pollIntervalMs <ms>`/`INPUT_POLL_INTERVAL_MS`: Polling interval in milliseconds when waiting for build results. Default: 5000ms.
 
 #### Workflow Control
 
+- `--waitForResult`/`INPUT_WAIT_FOR_RESULT`: Whether to wait for the trace to finish before completing the execution. Set to 'false' to trigger the trace and exit immediately without waiting for results. Default: 'true'.
 - `--failOnFailedTraces`/`INPUT_FAIL_ON_FAILED_TRACES`: Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'.
 
 ##### Reporter Webhook
@@ -55,7 +57,7 @@ These arguments only work if you are triggering a project (using a `projectId` i
 
 ### Output artifact
 
-The builds generate an artifact in the root folder called `output.json` with the following fields:
+The builds generate an artifact in the root folder called `output.json` with the following fields (only when `waitForResult` is true):
 
 - `id`: Build ID executed.
 - `status`: Status of the run.
@@ -177,6 +179,12 @@ npm run usetrace
 
 ```shell
 npm run usetrace -- --traceId yourTraceId --browsers chrome,firefox --buildTimeoutSeconds 900 --webhookUrl https://webhook-test.com/yourWebhookId --parameters '"key1":"value1", "key2":"value2"'
+```
+
+- For fire-and-forget execution (trigger and exit immediately):
+
+```shell
+npm run usetrace -- --traceId yourTraceId --waitForResult false
 ```
 
 ## Support
